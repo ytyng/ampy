@@ -19,16 +19,24 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+import os
 import ast
 import textwrap
 import binascii
 
 from ampy.pyboard import PyboardError
 
-
-BUFFER_SIZE = 32  # Amount of data to read or write to the serial port at a time.
+# BUFFER_SIZE:
+# Amount of data to read or write to the serial port at a time.
 # This is kept small because small chips and USB to serial
 # bridges usually have very small buffers.
+if os.environ.get('AMPY_FILES_BUFFER_SIZE'):
+    # If you are having trouble putting files, try setting
+    # `AMPY_FILES_BUFFER_SIZE` to a smaller value.
+    # For example, when using ESP32-C3, setting it to 16 will stabilize it.
+    BUFFER_SIZE = int(os.environ.get('AMPY_FILES_BUFFER_SIZE'))
+else:
+    BUFFER_SIZE = 32
 
 
 class DirectoryExistsError(Exception):
@@ -108,7 +116,7 @@ class Files(object):
             directory = "/" + directory
 
         command = """\
-                try:        
+                try:
                     import os
                 except ImportError:
                     import uos as os\n"""
@@ -122,10 +130,10 @@ class Files(object):
                         try:
                             # if its a directory, then it should provide some children.
                             children = os.listdir(dir_or_file)
-                        except OSError:                        
+                        except OSError:
                             # probably a file. run stat() to confirm.
                             os.stat(dir_or_file)
-                            result.add(dir_or_file) 
+                            result.add(dir_or_file)
                         else:
                             # probably a directory, add to result if empty.
                             if children:
@@ -136,17 +144,17 @@ class Files(object):
                                         next = dir_or_file + child
                                     else:
                                         next = dir_or_file + '/' + child
-                                    
+
                                     _listdir(next)
                             else:
-                                result.add(dir_or_file)                     
+                                result.add(dir_or_file)
 
                     _listdir(directory)
                     return sorted(result)\n"""
         else:
             command += """\
                 def listdir(directory):
-                    if directory == '/':                
+                    if directory == '/':
                         return sorted([directory + f for f in os.listdir(directory)])
                     else:
                         return sorted([directory + '/' + f for f in os.listdir(directory)])\n"""
@@ -156,7 +164,7 @@ class Files(object):
             command += """
                 r = []
                 for f in listdir('{0}'):
-                    size = os.stat(f)[6]                    
+                    size = os.stat(f)[6]
                     r.append('{{0}} - {{1}} bytes'.format(f, size))
                 print(r)
             """.format(

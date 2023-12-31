@@ -110,6 +110,9 @@ Or on Windows (untested) try the SET command:
 Similarly, you can set `AMPY_BAUD` and `AMPY_DELAY` to control your baud rate and
 the delay before entering RAW MODE.
 
+
+
+
 To set these variables automatically each time you run `ampy`, copy them into a
 file named `.ampy`:
 
@@ -124,3 +127,15 @@ AMPY_DELAY=0.5
 
 You can put the `.ampy` file in your working directory, one of its parents, or in
 your home directory.
+
+
+### AMPY_FILES_BUFFER_SIZE
+
+Set file putting buffer size. Default is 32 bytes.
+
+If you are having trouble putting files, try setting `AMPY_FILES_BUFFER_SIZE` to a smaller value.
+
+For example, when using ESP32-C3, setting it to 16 will stabilize it.
+
+    export AMPY_FILES_BUFFER_SIZE=16
+    ampy put lib/adafruit_ble lib/adafruit_ble
